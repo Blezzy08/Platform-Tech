@@ -249,9 +249,6 @@ export default {
         { label: 'Applicants', icon: 'IconApplicants' },
       ],
       bottomNavItems: [
-        { label: 'Database', icon: 'IconDatabase' },
-        { label: 'Settings', icon: 'IconSettings' },
-        { label: 'Trash', icon: 'IconTrash' },
         { label: 'Log Out', icon: 'IconLogout' },
         { label: 'Help', icon: 'IconHelp' },
       ],
