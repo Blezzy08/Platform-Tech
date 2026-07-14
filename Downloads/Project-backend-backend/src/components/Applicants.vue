@@ -44,7 +44,6 @@
               >
                 {{ applicant.status === 'Approved' ? 'APPROVED' : applicant.status === 'Rejected' ? 'REJECTED' : 'APPROVE' }}
               </button>
-              <button class="action-btn delete-btn" @click="deleteApplicant(applicant.id)">DELETE</button>
             </div>
           </div>
 
@@ -234,9 +233,6 @@ export default {
         applicant.status = 'Approved'
       }
     },
-    deleteApplicant(id) {
-      this.applicants = this.applicants.filter(a => a.id !== id)
-    }
   }
 }
 </script>
@@ -460,11 +456,6 @@ export default {
   border-color: #ef4444;
 }
 
-.delete-btn:hover {
-  background: #ef4444;
-  color: #fff;
-  border-color: #ef4444;
-}
 
 .empty-state {
   text-align: center;
