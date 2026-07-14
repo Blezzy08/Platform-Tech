@@ -11,7 +11,6 @@ const errorMsg = ref("");
 const loading = ref(false);
 
 const handleLogin = async () => {
-
   if (!email.value || !password.value) {
     errorMsg.value = "Please enter your credentials";
     return;
@@ -21,38 +20,21 @@ const handleLogin = async () => {
   errorMsg.value = "";
 
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/v1/accounts/login`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email.value,
-          password: password.value,
-        }),
-      },
-    );
+    const response = await fetch(`${API_BASE_URL}/api/v1/accounts/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.value, password: password.value }),
+    });
 
     const data = await response.json();
-    console.log("Response OK:", response.ok);
-    console.log("Response:", data);
 
     if (response.ok) {
-      console.log("Login success!");
-      
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("user_email", data.account.email);
       localStorage.setItem("user_id", data.account.id);
-
-      console.log(localStorage.getItem("isLoggedIn"));
-
-      console.log("Before push");
-await router.push("/dashboard");
-console.log("After push");
+      await router.push("/dashboard");
     } else {
-      errorMsg.value = data.message;
+      errorMsg.value = data.message || "Login failed. Please try again.";
     }
   } catch (error) {
     console.error(error);

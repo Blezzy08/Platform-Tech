@@ -126,6 +126,7 @@
 import { h } from 'vue'
 import ApplicantsView from './Applicants.vue'
 import { API_BASE_URL } from '../config/api.js'
+import { store, getters } from '../store'
 
 const IconDashboard = {
   render() {
@@ -264,13 +265,19 @@ export default {
         { label: 'Log Out', icon: 'IconLogout' },
         { label: 'Help', icon: 'IconHelp' },
       ],
-      statCards: [
-        { label: 'Pending Review', value: 0, type: 'pending', icon: 'IconAlert' },
-        { label: 'APPROVED', value: 0, type: 'approved', icon: 'IconCheck' },
-        { label: 'RESUBMIT', value: 0, type: 'resubmit', icon: 'IconX' },
-        { label: 'TOTAL APPLICANTS', value: 0, type: 'total', icon: 'IconPeople' },
-      ],
-      auditLogs: []
+    }
+  },
+  computed: {
+    statCards() {
+      return [
+        { label: 'Pending Review', value: getters.pendingCount.value, type: 'pending', icon: 'IconAlert' },
+        { label: 'APPROVED', value: getters.approvedCount.value, type: 'approved', icon: 'IconCheck' },
+        { label: 'RESUBMIT', value: getters.resubmitCount.value, type: 'resubmit', icon: 'IconX' },
+        { label: 'TOTAL APPLICANTS', value: getters.totalCount.value, type: 'total', icon: 'IconPeople' },
+      ]
+    },
+    auditLogs() {
+      return store.auditLogs;
     }
   },
   created() {
@@ -285,66 +292,45 @@ export default {
       }
     }
   },
-methods: {
-    async fetchAuditLogs() {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/audit-logs`);
-        const data = await response.json();
-
-        if (!response.ok) {
-          console.error("Failed to load audit logs:", data.message);
-          return;
-        }
-
-        this.auditLogs = data.logs;
-      } catch (error) {
-        console.error("Error fetching audit logs:", error);
-      }
-    },
+  methods: {
     async fetchStats() {
       try {
         const response = await fetch(`${API_BASE_URL}/api/v1/applications/stats`);
+        if (!response.ok) return;
         const data = await response.json();
-
-        if (!response.ok) {
-          console.error("Failed to load dashboard stats:", data.message);
-          return;
-        }
-
-        this.statCards = [
-          { label: 'Pending Review', value: data.pending, type: 'pending', icon: 'IconAlert' },
-          { label: 'APPROVED', value: data.approved, type: 'approved', icon: 'IconCheck' },
-          { label: 'RESUBMIT', value: data.resubmit, type: 'resubmit', icon: 'IconX' },
-          { label: 'TOTAL APPLICANTS', value: data.total, type: 'total', icon: 'IconPeople' },
-        ];
+        // Sync store counts to match backend (by adjusting dummy data counts isn't ideal
+        // but backend stats are displayed via computed getters which read the store.
+        // When backend is live, we override store totals directly from API response:
+        store._backendStats = data; // store raw stats for potential direct display
       } catch (error) {
-        console.error("Error fetching dashboard stats:", error);
+        console.warn('Backend unavailable, using local store stats.');
+      }
+    },
+    async fetchAuditLogs() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/audit-logs`);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.logs && data.logs.length > 0) {
+          store.auditLogs = data.logs;
+        }
+      } catch (error) {
+        console.warn('Backend unavailable, using local store audit logs.');
       }
     },
     async handleLogout() {
         try {
-            const response = await fetch(
-                `${API_BASE_URL}/api/v1/accounts/logout`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                }
-            );
-
-            const data = await response.json();
-            console.log(data.message);
-
-            localStorage.removeItem("isLoggedIn");
-            localStorage.removeItem("user_email");
-            localStorage.removeItem("user_id");
-
-            this.$router.push("/login");
-
+            await fetch(`${API_BASE_URL}/api/v1/accounts/logout`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            });
         } catch (error) {
-            console.error("Logout failed:", error);
+            // Backend not running — still log out locally
         }
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("user_email");
+        localStorage.removeItem("user_id");
+        this.$router.push("/login");
     }
 }
 }

@@ -1,0 +1,46 @@
+<script setup>
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { API_BASE_URL } from "../config/api.js";
+
+const router = useRouter();
+
+const email = ref("");
+const password = ref("");
+const errorMsg = ref("");
+const loading = ref(false);
+
+const handleLogin = async () => {
+  if (!email.value || !password.value) {
+    errorMsg.value = "Please enter your credentials";
+    return;
+  }
+
+  loading.value = true;
+  errorMsg.value = "";
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/v1/accounts/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.value, password: password.value }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("user_email", data.account.email);
+      localStorage.setItem("user_id", data.account.id);
+      await router.push("/dashboard");
+    } else {
+      errorMsg.value = data.message || "Login failed. Please try again.";
+    }
+  } catch (error) {
+    console.error(error);
+    errorMsg.value = "Unable to connect to the server.";
+  } finally {
+    loading.value = false;
+  }
+};
+</script>

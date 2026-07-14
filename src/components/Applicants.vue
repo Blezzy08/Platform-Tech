@@ -35,13 +35,9 @@
             <div class="col-datetime">{{ applicant.date }}</div>
             <div class="col-name">{{ applicant.name }}</div>
             <div class="col-status">
-              <button
-                class="action-btn approve-btn"
-                :class="{ approved: applicant.status === 'Approved', rejected: applicant.status === 'Rejected' }"
-                @click="toggleApprove(applicant)"
-              >
-                {{ applicant.status === 'Approved' ? 'APPROVED' : applicant.status === 'Rejected' ? 'REJECTED' : 'APPROVE' }}
-              </button>
+              <span class="status-badge" :class="applicant.status.toLowerCase()">
+                {{ applicant.status.toUpperCase() }}
+              </span>
             </div>
             <div class="col-actions">
               <button class="action-btn view-btn" @click="viewApplicant(applicant)">VIEW</button>
@@ -58,70 +54,197 @@
     <!-- ===================== DETAIL VIEW ===================== -->
     <template v-else>
       <div class="search-row detail-search-row">
+        <div class="search-pill">
+          <div class="search-icon-circle">
+            <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+              <circle cx="7.5" cy="7.5" r="6" stroke="white" stroke-width="2"/>
+              <path d="M12 12l4 4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <input type="text" placeholder="Search here..." />
+        </div>
         <button class="back-btn" @click="closeView">&larr; Back</button>
       </div>
 
-      <div class="profile-row">
-        <img
-          class="profile-avatar"
-          :src="selectedApplicant.avatar || defaultAvatar"
-          alt="avatar"
-        />
-        <div class="profile-name-block">
-          <div class="profile-name">{{ selectedApplicant.name }}</div>
-          <div class="profile-role">Applicant</div>
-        </div>
-      </div>
+      <div class="detail-scroll-container">
 
-      <div class="detail-grid">
-        <div class="detail-column">
-          <h3 class="detail-heading">Information</h3>
-
-          <label class="detail-label">Email</label>
-          <input class="detail-input" type="email" v-model="selectedApplicant.email" />
-
-          <label class="detail-label">First Name</label>
-          <input class="detail-input" type="text" v-model="selectedApplicant.firstName" />
-
-          <label class="detail-label">Last Name</label>
-          <input class="detail-input" type="text" v-model="selectedApplicant.lastName" />
-
-          <label class="detail-label">Contact Number</label>
-          <input class="detail-input" type="text" v-model="selectedApplicant.contactNumber" />
-
-          <label class="detail-label">Affiliate</label>
-          <input class="detail-input" type="text" v-model="selectedApplicant.affiliate" />
+        <!-- Profile Header -->
+        <div class="profile-row">
+          <img
+            class="profile-avatar"
+            :src="`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(selectedApplicant.name)}`"
+            alt="avatar"
+          />
+          <div class="profile-name-block">
+            <div class="profile-name">{{ selectedApplicant.name }}</div>
+            <div class="profile-role">Applicant</div>
+          </div>
+          <span class="detail-status-badge" :class="selectedApplicant.status.toLowerCase()">
+            {{ selectedApplicant.status.toUpperCase() }}
+          </span>
         </div>
 
-        <div class="detail-column">
-          <h3 class="detail-heading">Vehicles</h3>
-
-          <label class="detail-label">Type of Vehicle</label>
-          <input class="detail-input" type="text" v-model="selectedApplicant.vehicleType" />
-
-          <label class="detail-label">Plate Number</label>
-          <input class="detail-input" type="text" v-model="selectedApplicant.plateNumber" />
-
-          <label class="detail-label">Year Model / Make</label>
-          <input class="detail-input" type="text" v-model="selectedApplicant.yearModel" />
-
-          <label class="detail-label">Driver's License (if different)</label>
-          <input class="detail-input" type="text" v-model="selectedApplicant.driversLicense" />
-
-          <label class="detail-label">Gatepass Access Type</label>
-          <select class="detail-input" v-model="selectedApplicant.gatepassAccessType">
-            <option value="">Select...</option>
-            <option value="Full Access">Full Access</option>
-            <option value="Limited Access">Limited Access</option>
-            <option value="Visitor">Visitor</option>
-            <option value="Temporary">Temporary</option>
-          </select>
+        <!-- Applicant Information -->
+        <div class="detail-section">
+          <h3 class="detail-heading">Applicant Information</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Name</span>
+              <span class="info-value">{{ selectedApplicant.firstName }} {{ selectedApplicant.lastName }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">ID Number</span>
+              <span class="info-value">{{ selectedApplicant.idNumber || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email</span>
+              <span class="info-value">{{ selectedApplicant.email || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Course</span>
+              <span class="info-value">{{ selectedApplicant.course || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Contact No.</span>
+              <span class="info-value">{{ selectedApplicant.contactNumber || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Affiliation</span>
+              <span class="info-value">{{ selectedApplicant.affiliate || '—' }}</span>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div class="detail-actions">
-        <button class="action-btn save-btn" @click="saveApplicant">SAVE</button>
-        <button class="action-btn cancel-btn" @click="closeView">CANCEL</button>
+        <!-- Vehicle Information -->
+        <div class="detail-section">
+          <h3 class="detail-heading">Vehicle Information</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Vehicle Type</span>
+              <span class="info-value">{{ selectedApplicant.vehicleType || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Brand</span>
+              <span class="info-value">{{ selectedApplicant.brand || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Model</span>
+              <span class="info-value">{{ selectedApplicant.model || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Plate No.</span>
+              <span class="info-value">{{ selectedApplicant.plateNumber || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Gate Pass Type</span>
+              <span class="info-value">{{ selectedApplicant.gatepassAccessType || '—' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Uploaded Requirements -->
+        <div class="detail-section">
+          <h3 class="detail-heading">Uploaded Requirements</h3>
+          <div class="info-grid">
+            <div class="requirement-item">
+              <span class="req-title">Driver's License</span>
+              <div class="req-links">
+                <a href="#">[Preview]</a>
+                <a href="#">[View]</a>
+                <a href="#">[Download]</a>
+              </div>
+            </div>
+            <div class="requirement-item">
+              <span class="req-title">Official Receipt</span>
+              <div class="req-links">
+                <a href="#">[Preview]</a>
+                <a href="#">[View]</a>
+                <a href="#">[Download]</a>
+              </div>
+            </div>
+            <div class="requirement-item">
+              <span class="req-title">School ID</span>
+              <div class="req-links">
+                <a href="#">[Preview]</a>
+                <a href="#">[View]</a>
+                <a href="#">[Download]</a>
+              </div>
+            </div>
+            <div class="requirement-item">
+              <span class="req-title">Certificate of Registration</span>
+              <div class="req-links">
+                <a href="#">[Preview]</a>
+                <a href="#">[View]</a>
+                <a href="#">[Download]</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guidelines & Pledge -->
+        <div class="detail-section">
+          <h3 class="detail-heading">Guidelines &amp; Pledge</h3>
+          <div class="pledge-item">
+            <div class="pledge-check-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M4 9l4 4 6-7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="pledge-text">Agreed to Campus Traffic Management</span>
+          </div>
+          <div class="pledge-date">
+            <span class="date-label">Accepted</span>
+            <span class="date-value">{{ selectedApplicant.date }}</span>
+          </div>
+        </div>
+
+        <!-- Admin Section -->
+        <div class="detail-section">
+          <h3 class="detail-heading">Admin Section</h3>
+          <div class="info-grid admin-grid">
+            <div class="info-item">
+              <span class="info-label">Sticker Color</span>
+              <span class="info-value">Yellow</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Validity</span>
+              <span class="info-value">SY 2026–2027</span>
+            </div>
+          </div>
+
+          <div class="admin-actions">
+            <div class="action-row">
+              <button
+                class="btn-approve"
+                :class="{ 'btn-active': selectedApplicant.status === 'Approved' }"
+                @click="setStatus('Approved')"
+              >
+                <svg v-if="selectedApplicant.status === 'Approved'" width="15" height="15" viewBox="0 0 18 18" fill="none">
+                  <path d="M4 9l4 4 6-7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                {{ selectedApplicant.status === 'Approved' ? 'Approved' : 'Approve' }}
+              </button>
+              <button
+                class="btn-reject"
+                :class="{ 'btn-active': selectedApplicant.status === 'Rejected' }"
+                @click="setStatus('Rejected')"
+              >
+                <svg v-if="selectedApplicant.status === 'Rejected'" width="15" height="15" viewBox="0 0 18 18" fill="none">
+                  <path d="M5 5l8 8M13 5l-8 8" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+                {{ selectedApplicant.status === 'Rejected' ? 'Rejected' : 'Reject' }}
+              </button>
+            </div>
+            <button
+              class="btn-revise"
+              :class="{ 'btn-active-revise': selectedApplicant.status === 'Pending' }"
+              @click="setStatus('Pending')"
+            >
+              {{ selectedApplicant.status === 'Pending' ? '↩ Pending Review' : 'Request Revision' }}
+            </button>
+          </div>
+        </div>
+
       </div>
     </template>
 
@@ -130,85 +253,98 @@
 
 <script>
 import { API_BASE_URL } from '../config/api.js'
+import { store, actions } from '../store'
 
 export default {
   name: 'ApplicantsView',
   data() {
     return {
-      searchQuery: '',
-      selectedApplicant: null,
-      defaultAvatar: 'https://api.dicebear.com/7.x/initials/svg?seed=NA',
-      applicants: []
+      searchQuery: ''
     }
   },
-  created() {
-    this.fetchApplicants();
+  async created() {
+    await this.fetchApplicants()
   },
   computed: {
+    applicants() {
+      return store.applicants
+    },
     filteredApplicants() {
       const q = this.searchQuery.toLowerCase()
       return this.applicants.filter(a =>
-        a.name.toLowerCase().includes(q) || String(a.id).includes(q)
+        a.name.toLowerCase().includes(q) ||
+        String(a.id).includes(q) ||
+        a.status.toLowerCase().includes(q)
       )
+    },
+    selectedApplicant() {
+      return store.selectedApplicant || null
     }
   },
   methods: {
     async fetchApplicants() {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/applications`);
-        const data = await response.json();
-
-        if (!response.ok) {
-          console.error("Failed to load applicants:", data.message);
-          return;
-        }
-
-        this.applicants = data.applications.map(a => ({
-          ...a,
-          avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(a.name)}`
-        }));
+        const response = await fetch(`${API_BASE_URL}/api/v1/applications`)
+        if (!response.ok) return
+        const data = await response.json()
+        // Replace store applicants with real backend data
+        store.applicants = data.applications.map(a => ({
+          id: a.id,
+          date: a.date,
+          name: a.name,
+          status: a.status,
+          // Detail fields — not yet in backend model, so left blank
+          firstName: a.name.split(' ')[0] || '',
+          lastName: a.name.split(' ').slice(1).join(' ') || '',
+          email: '',
+          contactNumber: '',
+          idNumber: '',
+          course: '',
+          affiliate: '',
+          vehicleType: '',
+          brand: '',
+          model: '',
+          plateNumber: '',
+          gatepassAccessType: ''
+        }))
       } catch (error) {
-        console.error("Error fetching applicants:", error);
+        // Backend not running — use existing store dummy data silently
+        console.warn('Backend unavailable, using local data.')
       }
     },
     viewApplicant(applicant) {
-      // Ensure detail fields exist even if the source record doesn't have them yet
-      const detailFields = [
-        'email', 'firstName', 'lastName', 'contactNumber', 'affiliate',
-        'vehicleType', 'plateNumber', 'yearModel', 'driversLicense', 'gatepassAccessType'
-      ]
-      detailFields.forEach(field => {
-        if (!(field in applicant)) applicant[field] = ''
-      })
-      this.selectedApplicant = applicant
+      store.selectedApplicant = applicant
     },
     closeView() {
-      this.selectedApplicant = null
+      store.selectedApplicant = null
     },
-    saveApplicant() {
-      // Hook up to your API call here (e.g. this.$axios.put(...))
-      this.closeView()
-    },
-    async toggleApprove(applicant) {
-      const newStatus = applicant.status === 'Approved' ? 'Rejected' : 'Approved'
+    async setStatus(newStatus) {
+      if (!this.selectedApplicant) return
+      if (this.selectedApplicant.status === newStatus) return
+
+      const applicant = this.selectedApplicant
       const previousStatus = applicant.status
 
-      applicant.status = newStatus // optimistic update
+      // Optimistic update in store immediately
+      actions.updateStatus(applicant.id, newStatus)
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/applications/${applicant.id}/status`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus })
-        });
-
+        const response = await fetch(
+          `${API_BASE_URL}/api/v1/applications/${applicant.id}/status`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+          }
+        )
         if (!response.ok) {
-          applicant.status = previousStatus // roll back on failure
-          console.error('Failed to update application status');
+          // Roll back if backend rejected it
+          actions.updateStatus(applicant.id, previousStatus)
+          console.error('Failed to update status on server.')
         }
       } catch (error) {
-        applicant.status = previousStatus // roll back on failure
-        console.error('Error updating application status:', error);
+        // Backend not running — keep local update
+        console.warn('Backend unavailable, status updated locally only.')
       }
     }
   }
@@ -221,6 +357,7 @@ export default {
   padding: 0;
 }
 
+/* ===================== SEARCH ROW ===================== */
 .search-row {
   display: flex;
   align-items: center;
@@ -266,9 +403,7 @@ export default {
   min-width: 0;
 }
 
-.search-pill input::placeholder {
-  color: #a8adc2;
-}
+.search-pill input::placeholder { color: #a8adc2; }
 
 .count-badge {
   background: #fff;
@@ -302,9 +437,8 @@ export default {
   border-color: #2b3ab0;
 }
 
-.table-section {
-  width: 100%;
-}
+/* ===================== TABLE ===================== */
+.table-section { width: 100%; }
 
 .table-title {
   font-size: 13px;
@@ -323,7 +457,7 @@ export default {
 
 .table-row {
   display: grid;
-  grid-template-columns: 160px 1fr 130px 110px;
+  grid-template-columns: 180px 1fr 130px 110px;
   align-items: center;
   gap: 10px;
   width: 100%;
@@ -335,7 +469,7 @@ export default {
   border-radius: 30px;
   padding: 10px 16px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #1a1a2e;
 }
@@ -353,39 +487,12 @@ export default {
   width: 100%;
 }
 
+.col-status-header,
 .col-actions-header {
   background: #fff;
   border: 1.5px solid #d8dce8;
   border-radius: 30px;
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  color: #555;
-  text-align: center;
-  padding: 10px 12px;
-box-sizing: border-box;
-width: 100%;
-}
-
-.col-actions {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-}
-
-.header-row .col-datetime,
-.header-row .col-name {
-  font-weight: 700;
-  font-size: 12.5px;
-  letter-spacing: 0.3px;
-  color: #555;
-}
-
-.col-status-header {
-  background: #fff;
-  border: 1.5px solid #d8dce8;
-  border-radius: 30px;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.3px;
   color: #555;
@@ -395,11 +502,43 @@ width: 100%;
   width: 100%;
 }
 
-.col-status {
+.col-actions {
   display: flex;
+  gap: 8px;
   width: 100%;
 }
 
+.col-status {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.header-row .col-datetime,
+.header-row .col-name {
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  color: #555;
+}
+
+/* Status badge in list */
+.status-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+.status-badge.pending  { background: #f0f2f8; color: #555; border: 1.5px solid #d8dce8; }
+.status-badge.approved { background: #dcfce7; color: #16a34a; border: 1.5px solid #bbf7d0; }
+.status-badge.rejected { background: #fee2e2; color: #dc2626; border: 1.5px solid #fecaca; }
+
+/* View button */
 .action-btn {
   border: 1.5px dashed #c6cbe0;
   border-radius: 30px;
@@ -413,8 +552,7 @@ width: 100%;
   color: #333;
 }
 
-.col-status .action-btn,
-.col-actions .action-btn{
+.col-actions .action-btn {
   flex: 1;
   width: 100%;
   box-sizing: border-box;
@@ -426,24 +564,6 @@ width: 100%;
   border-color: #2b3ab0;
 }
 
-.approve-btn:hover {
-  background: #22c55e;
-  color: #fff;
-  border-color: #22c55e;
-}
-
-.approve-btn.approved {
-  background: #22c55e;
-  color: #fff;
-  border-color: #22c55e;
-}
-
-.approve-btn.rejected {
-  background: #ef4444;
-  color: #fff;
-  border-color: #ef4444;
-}
-
 .empty-state {
   text-align: center;
   padding: 30px;
@@ -451,7 +571,20 @@ width: 100%;
   font-size: 13px;
 }
 
-/* ===================== DETAIL VIEW STYLES ===================== */
+/* ===================== DETAIL VIEW ===================== */
+.detail-scroll-container {
+  height: calc(100vh - 140px);
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-top: 10px;
+}
+
+.detail-scroll-container::-webkit-scrollbar { width: 6px; }
+.detail-scroll-container::-webkit-scrollbar-track { background: transparent; }
+.detail-scroll-container::-webkit-scrollbar-thumb {
+  background: #d0d4e8;
+  border-radius: 6px;
+}
 
 .profile-row {
   display: flex;
@@ -461,12 +594,15 @@ width: 100%;
 }
 
 .profile-avatar {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   object-fit: cover;
-  background: #eee;
+  background: #e8eaf6;
+  border: 2px solid #e0e4ef;
 }
+
+.profile-name-block { flex: 1; }
 
 .profile-name {
   font-size: 16px;
@@ -480,79 +616,167 @@ width: 100%;
   font-weight: 500;
 }
 
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
+/* Status badge in detail header */
+.detail-status-badge {
+  padding: 6px 18px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  flex-shrink: 0;
 }
+.detail-status-badge.pending  { background: #f0f2f8; color: #555; }
+.detail-status-badge.approved { background: #dcfce7; color: #16a34a; }
+.detail-status-badge.rejected { background: #fee2e2; color: #dc2626; }
+
+.detail-section { margin-bottom: 36px; }
 
 .detail-heading {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 800;
-  color: #1a1a2e;
-  margin: 0 0 18px 0;
+  color: #3f4254;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid #f0f2f8;
 }
 
-.detail-label {
-  display: block;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #444;
-  margin-bottom: 6px;
-  margin-top: 16px;
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 32px;
 }
 
-.detail-label:first-of-type {
-  margin-top: 0;
+.info-item { display: flex; flex-direction: column; }
+
+.info-label {
+  font-size: 11px;
+  color: #a1a5b7;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
 }
 
-.detail-input {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1.5px solid #d8dce8;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 13px;
-  color: #1a1a2e;
-  background: #fff;
-  outline: none;
-  transition: border-color 0.15s;
+.info-value {
+  font-size: 14px;
+  color: #3f4254;
+  font-weight: 700;
 }
 
-.detail-input:focus {
-  border-color: #2b3ab0;
-}
-
-select.detail-input {
-  appearance: none;
-  cursor: pointer;
-}
-
-.detail-actions {
+/* Requirements */
+.requirement-item {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.req-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #3f4254;
+}
+
+.req-links { display: flex; gap: 10px; }
+
+.req-links a {
+  font-size: 12px;
+  color: #2b3ab0;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.req-links a:hover { text-decoration: underline; }
+
+/* Pledge */
+.pledge-item {
+  display: flex;
+  align-items: center;
   gap: 12px;
-  margin-top: 36px;
+  margin-bottom: 14px;
 }
 
-.save-btn {
-  background: #2b3ab0;
-  color: #fff;
-  border-color: #2b3ab0;
-  padding: 9px 24px;
+.pledge-check-icon {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 50%;
+  background: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.save-btn:hover {
-  background: #202b8c;
+.pledge-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #3f4254;
 }
 
-.cancel-btn:hover {
-  background: #f1f2f6;
+.pledge-date {
+  display: flex;
+  flex-direction: column;
+  margin-left: 46px;
+}
+
+.date-label {
+  font-size: 11px;
+  color: #a1a5b7;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+
+.date-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #181c32;
+}
+
+/* Admin action buttons */
+.admin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.action-row { display: flex; gap: 12px; }
+
+.btn-approve, .btn-reject, .btn-revise {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 24px;
+  padding: 13px 24px;
+  font-size: 13px;
+  font-weight: 800;
+  color: white;
+  cursor: pointer;
+  text-align: center;
+  transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+.btn-approve { background: #22c55e; flex: 1; }
+.btn-approve:hover { opacity: 0.88; }
+.btn-approve.btn-active { background: #16a34a; box-shadow: 0 0 0 3px #bbf7d0; }
+
+.btn-reject { background: #ef4444; flex: 1; }
+.btn-reject:hover { opacity: 0.88; }
+.btn-reject.btn-active { background: #dc2626; box-shadow: 0 0 0 3px #fecaca; }
+
+.btn-revise { background: #232c45; width: 100%; }
+.btn-revise:hover { opacity: 0.88; }
+.btn-revise.btn-active-revise { background: #f59e0b; box-shadow: 0 0 0 3px #fde68a; }
+
+.btn-approve:active, .btn-reject:active, .btn-revise:active {
+  transform: scale(0.97);
 }
 
 @media (max-width: 700px) {
-  .detail-grid {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
+  .info-grid { grid-template-columns: 1fr; gap: 16px; }
+  .table-row { grid-template-columns: 1fr 1fr; gap: 8px; }
 }
 </style>
